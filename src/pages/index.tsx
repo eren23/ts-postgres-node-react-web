@@ -4,12 +4,12 @@ import { usePostsQuery } from "../generated/graphql";
 import { Layout } from "../components/Layout";
 import { Link, Stack, Box, Heading, Text, Flex, Button } from "@chakra-ui/core";
 import NextLink from "next/link"
+import { useState } from "react";
 
 const Index = () => {
+  const [variables, setVariables] = useState({ limit: 10, cursor: null as string | null })
   const [{ data, fetching }] = usePostsQuery({
-    variables: {
-      limit: 10
-    }
+    variables
   });
   if (!fetching && !data) {
     return <div>You got no data</div>
@@ -28,7 +28,7 @@ const Index = () => {
       {fetching && !data ? (
         <div>loading...</div>
       ) : (<Stack spacing={8}>
-        {data!.posts.map((p) => (
+        {data!.posts.posts.map((p) => (
 
           <Box key={p.id} p={5} shadow="md" borderWidth="1px" >
 
@@ -38,7 +38,14 @@ const Index = () => {
         ))}
       </Stack>
         )}
-      {data ? <Flex> <Button isLoading={fetching} m="auto" my={4} > Load More </Button></Flex> : null}
+      {data && data.posts.hasMore ? <Flex> <Button
+        onClick={() => {
+          setVariables({
+            limit: variables.limit,
+            cursor: data.posts.posts[data.posts.posts.length - 1].createdAt
+          })
+        }}
+        isLoading={fetching} m="auto" my={4} > Load More </Button></Flex> : null}
 
     </Layout>
   );
